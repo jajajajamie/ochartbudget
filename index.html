@@ -794,6 +794,7 @@
     <div class="sidebar-section" style="padding-bottom:24px;">
       <div class="section-title">操作</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="export-btn" style="width:100%;text-align:center;" onclick="manualSave()">💾 立即保存到云端</button>
         <button class="reset-btn" onclick="resetAllRates()">↺ 恢复默认值</button>
         <div style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:4px;" id="last-saved-text"></div>
       </div>
@@ -1530,21 +1531,27 @@ function scheduleSave() {
   saveTimer = setTimeout(saveToCloud, 1500);
 }
 
+async function manualSave() {
+  clearTimeout(saveTimer);
+  await saveToCloud();
+}
+
 async function saveToCloud() {
   if (isSaving) return;
   isSaving = true;
   setSyncStatus('saving', '保存中...');
   try {
     const state = buildStateSnapshot();
-    const { error } = await sb
+    const { data, error } = await sb
       .from('calculator_state')
-      .upsert({ id: STATE_ID, data: state, updated_at: new Date().toISOString() });
+      .upsert({ id: STATE_ID, data: state, updated_at: new Date().toISOString() })
+      .select();
     if (error) throw error;
-    setSyncStatus('saved', '已同步');
+    setSyncStatus('saved', '已同步 ✓');
     setLastSaved();
   } catch (e) {
     console.error('Save failed:', e);
-    setSyncStatus('error', '保存失败');
+    setSyncStatus('error', '保存失败: ' + (e.message || e));
   } finally {
     isSaving = false;
   }
