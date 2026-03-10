@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第六届亚沙会转播成本计算器</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --surface3: #1f2d42;
+    --accent: #f59e0b;
+    --accent2: #3b82f6;
+    --accent3: #10b981;
+    --accent4: #ec4899;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --pp: #f59e0b;
+    --t: #fb923c;
+    --dr: #ec4899;
+    --live: #22c55e;
+    --rest: #64748b;
+    --travel: #8b5cf6;
+    --border: rgba(255,255,255,0.07);
+    --radius: 10px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #0a0e1a 0%, #1a2235 50%, #0f172a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+
+  .logo {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .logo-main {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 2px;
+  }
+
+  .total-badge {
+    text-align: right;
+  }
+
+  .total-label {
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .total-value {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    line-height: 1.1;
+  }
+
+  /* LAYOUT */
+  .container {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: calc(100vh - 80px);
+  }
+
+  /* LEFT SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    max-height: calc(100vh - 80px);
+    position: sticky;
+    top: 80px;
+  }
+
+  .sidebar-section {
+    border-bottom: 1px solid var(--border);
+    padding: 20px;
+  }
+
+  .section-title {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .section-title::before {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 1px;
+    background: var(--text3);
+  }
+
+  /* DAY TYPE RATES */
+  .day-rate-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .day-rate-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .day-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .day-label {
+    font-size: 12px;
+    color: var(--text2);
+    flex: 1;
+    min-width: 80px;
+  }
+
+  .rate-input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    width: 120px;
+  }
+
+  .rate-prefix {
+    padding: 5px 7px;
+    font-size: 11px;
+    color: var(--text3);
+    background: var(--surface3);
+    border-right: 1px solid var(--border);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .rate-input {
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    padding: 5px 8px;
+    width: 80px;
+    outline: none;
+    text-align: right;
+  }
+
+  .rate-input:focus {
+    background: rgba(245,158,11,0.05);
+  }
+
+  /* MULTIPLIERS */
+  .multiplier-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mult-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mult-label {
+    font-size: 12px;
+    color: var(--text2);
+    flex: 1;
+  }
+
+  .mult-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--accent2);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 5px 10px;
+    width: 70px;
+    outline: none;
+    text-align: center;
+  }
+
+  .mult-unit {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+    width: 20px;
+  }
+
+  /* ROLE RATES */
+  .role-section {
+    margin-bottom: 12px;
+  }
+
+  .role-section-title {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .role-rate-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .role-name {
+    font-size: 12px;
+    color: var(--text2);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* MAIN CONTENT */
+  .main {
+    padding: 24px 28px;
+    overflow-y: auto;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 24px;
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text3);
+    font-size: 12px;
+    font-family: 'Noto Sans SC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .tab.active {
+    background: var(--surface3);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* PROJECT CARD */
+  .project-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .project-card:hover {
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  .project-header {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    background: var(--surface2);
+    user-select: none;
+    gap: 12px;
+  }
+
+  .project-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .day-pills {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .day-pill {
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .pill-pp { background: rgba(245,158,11,0.15); color: var(--pp); }
+  .pill-t  { background: rgba(251,146,60,0.15);  color: var(--t);  }
+  .pill-dr { background: rgba(236,72,153,0.15);  color: var(--dr); }
+  .pill-live { background: rgba(34,197,94,0.15); color: var(--live); }
+  .pill-rest { background: rgba(100,116,139,0.15); color: var(--rest); }
+  .pill-travel { background: rgba(139,92,246,0.15); color: var(--travel); }
+
+  .project-total {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    white-space: nowrap;
+    min-width: 110px;
+    text-align: right;
+  }
+
+  .chevron {
+    color: var(--text3);
+    transition: transform 0.25s;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .project-card.open .chevron { transform: rotate(180deg); }
+
+  .project-body {
+    display: none;
+    padding: 16px 18px;
+    border-top: 1px solid var(--border);
+  }
+
+  .project-card.open .project-body { display: block; }
+
+  /* TEAM SECTION */
+  .team-block {
+    margin-bottom: 20px;
+  }
+
+  .team-title {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .team-subtotal {
+    font-size: 12px;
+    color: var(--accent2);
+  }
+
+  .staff-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .staff-table th {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+    text-align: left;
+    padding: 4px 8px;
+    background: var(--surface2);
+  }
+
+  .staff-table td {
+    padding: 6px 8px;
+    font-size: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: middle;
+  }
+
+  .staff-table tr:last-child td { border-bottom: none; }
+
+  .staff-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .count-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 3px 7px;
+    width: 50px;
+    outline: none;
+    text-align: center;
+  }
+
+  .cell-rate {
+    color: var(--text2);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+  }
+
+  .cell-cost {
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  /* DAYS EDITOR */
+  .days-editor {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .day-edit-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .day-edit-label {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+  }
+
+  .day-edit-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 3px 6px;
+    width: 42px;
+    outline: none;
+    text-align: center;
+  }
+
+  /* SUMMARY TABLE */
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .summary-table th {
+    background: var(--surface2);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .summary-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .summary-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .summary-table .subtotal td {
+    background: rgba(59,130,246,0.05);
+    font-weight: 600;
+    color: var(--accent2);
+  }
+
+  .summary-table .grand-total td {
+    background: rgba(245,158,11,0.08);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--accent);
+    border-top: 2px solid rgba(245,158,11,0.3);
+  }
+
+  .num { 
+    font-family: 'Space Mono', monospace;
+    text-align: right;
+  }
+
+  /* STAT CARDS */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+  }
+
+  /* TOOLTIP-like note */
+  .note {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: var(--surface2);
+    border-radius: 5px;
+    border-left: 2px solid var(--accent);
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .container { grid-template-columns: 1fr; }
+    .sidebar { position: static; max-height: none; }
+  }
+
+  .reset-btn {
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text3);
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .project-subtotals {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    color: var(--text2);
+    flex-wrap: wrap;
+  }
+
+  .proj-sub-item { display: flex; flex-direction: column; }
+  .proj-sub-label { font-size: 10px; color: var(--text3); }
+  .proj-sub-val { color: var(--accent2); }
+
+  .export-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Noto Sans SC', sans-serif;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+  .export-btn:hover { background: #fbbf24; transform: translateY(-1px); }
+
+  .info-banner {
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  .legend-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 14px 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-sub">第六届亚沙会 · 2026</span>
+    <span class="logo-main">转播成本计算器</span>
+  </div>
+  <div class="total-badge">
+    <div class="total-label">总成本</div>
+    <div class="total-value" id="grand-total">¥0</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- SIDEBAR: GLOBAL SETTINGS -->
+  <aside class="sidebar">
+
+    <div class="sidebar-section">
+      <div class="section-title">工作日单价设置</div>
+      <div class="legend-row" style="margin-bottom:10px;">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--pp)"></div>PP 停车接电</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--t)"></div>T 技术搭建</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--dr)"></div>DR 带机彩排</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--live)"></div>LIVE 直播</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--rest)"></div>REST 休息日</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--travel)"></div>交通日</div>
+      </div>
+      <div class="note" style="margin-bottom:12px;">此处设置各工作日类型对「岗位基准日薪」的倍率系数。也可在下方直接输入每日固定金额（按角色分类设置）。</div>
+      <div class="day-rate-grid" id="day-multipliers">
+        <!-- generated by JS -->
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-title">制作团队岗位日薪</div>
+      <div id="prod-role-rates"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-title">技术团队岗位日薪</div>
+      <div id="tech-role-rates"></div>
+    </div>
+
+    <div class="sidebar-section" style="padding-bottom:24px;">
+      <div class="section-title">操作</div>
+      <button class="reset-btn" onclick="resetAllRates()">↺ 恢复默认值</button>
+    </div>
+
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('overview', this)">总览统计</button>
+      <button class="tab" onclick="switchTab('projects', this)">各项目明细</button>
+      <button class="tab" onclick="switchTab('summary', this)">汇总报表</button>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    <div class="tab-panel active" id="tab-overview">
+      <div class="stat-grid" id="overview-stats"></div>
+
+      <div style="display:flex; gap:16px; align-items:center; margin-bottom:16px; flex-wrap:wrap;">
+        <div style="font-size:13px; color:var(--text2); font-weight:600;">按项目成本分布</div>
+        <button class="export-btn" onclick="exportCSV()">导出 CSV</button>
+      </div>
+
+      <div id="project-bar-chart" style="display:flex;flex-direction:column;gap:6px;margin-bottom:28px;"></div>
+
+      <div style="font-size:13px; color:var(--text2); font-weight:600; margin-bottom:12px;">制作 vs 技术团队成本对比</div>
+      <div id="team-comparison"></div>
+    </div>
+
+    <!-- PROJECTS TAB -->
+    <div class="tab-panel" id="tab-projects">
+      <div class="info-banner">
+        💡 点击项目卡片可展开/折叠明细。<strong>工作天数</strong>和<strong>人员数量</strong>均可直接在此调整，成本实时重算。左侧面板可修改岗位日薪和工作日单价系数。
+      </div>
+      <div id="projects-list"></div>
+    </div>
+
+    <!-- SUMMARY TAB -->
+    <div class="tab-panel" id="tab-summary">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+        <div style="font-size:15px; font-weight:700;">费用汇总报表</div>
+        <button class="export-btn" onclick="exportCSV()">导出 CSV</button>
+      </div>
+      <table class="summary-table" id="summary-table">
+        <thead>
+          <tr>
+            <th>项目</th>
+            <th>制作团队</th>
+            <th>技术团队</th>
+            <th>工作天数</th>
+            <th style="text-align:right">项目总费用</th>
+          </tr>
+        </thead>
+        <tbody id="summary-tbody"></tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// =============================================
+// DATA
+// =============================================
+const PROJECTS_DATA = {
+  "篮球-三人篮球": {
+    days: { PP:1, T:1, DR:1, LIVE:10, REST:0, TRAVEL:2 },
+    production_teams: [{ name:"制作团队", staff:[
+      {role:"领队/制片人",count:1},{role:"导演",count:1},{role:"助理导演",count:1},
+      {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
+      {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:7}
+    ]}],
+    tech_teams: []
+  },
+  "沙滩田径": {
+    days: { PP:1, T:2, DR:1, LIVE:6, REST:0, TRAVEL:2 },
+    production_teams: [{ name:"径赛/跳远制作团队", staff:[
+      {role:"领队/制片人",count:1},{role:"导演",count:1},{role:"助理导演",count:1},
+      {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
+      {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:6}
+    ]}],
+    tech_teams: []
+  },
+  "龙舟": {
+    days: { PP:1, T:1, DR:1, LIVE:6, REST:0, TRAVEL:2 },
+    production_teams: [{ name:"制作团队", staff:[
+      {role:"领队/制片人",count:1},{role:"导演",count:1},{role:"助理导演",count:1},
+      {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
+      {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:9},{role:"无人机飞手",count:1}
+    ]}],
+    tech_teams: []
+  },
+  "排球-沙滩排球": {
+    days: { PP:1, T:1, DR:1, LIVE:14, REST:0, TRAVEL:2 },
+    production_teams: [{ name:"制作团队", staff:[
+      {role:"领队/制片人",count:1},{role:"导演",count:1},{role:"助理导演",count:1},
+      {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
+      {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:7},{role:"摄像(ISB)",count:1}
+    ]}],
+    tech_teams: []
+  },
+  "沙滩手球": {
+    days: { PP:1, T:1, DR:1, LIVE:14, REST:0, TRAVEL:2 },
+    production_teams: [{ name:"制作团队", staff:[
+      {role:"领队/制片人",count:1},{role:"导演",count:1},{role:"助理导演",count:1},
+      {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
+      {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:7}
+    ]}],
+    tech_teams: []
+  },
+  "铁人三项-游跑两项": {
+    days: { PP:2, T:1, DR:1, LIVE:4, REST:0, TRAVEL:2 },
+    production_teams: [{ name:"制作团队", staff:[
+      {role:"领队/制片人",count:1},{role:"导演",count:1},{role:"助理导演",count:1},
+      {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
+      {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:10},{role:"无人机飞手",count:1}
+    ]}],
+    tech_teams: []
+  },
+  "攀岩-速度": {
+    days: { PP:1, T:1, DR:1, LIVE:4, REST:0, TRAVEL:2 },
+    production_teams: [{ name:"制作团队", staff:[
+      {role:"领队/制片人",count:1},{role:"导演",count:1},{role:"助理导演",count:1},
+      {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
+      {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:7}
+    ]}],
+    tech_teams: [{ name:"技术团队", staff:[
+      {role:"转播系统值班长",count:1},{role:"VIC调色工程师",count:1},{role:"视频/调光工程师",count:1},
+      {role:"音频工程师",count:2},{role:"调音师",count:1},{role:"特种设备工程师",count:1},
+      {role:"转播辅助人员",count:2},{role:"司机/线工",count:2}
+    ]}]
+  },
+  "柔术&摔跤-沙滩摔跤": {
+    days: { PP:1, T:1, DR:1, LIVE:4, REST:0, TRAVEL:2 },
+    production_teams: [{ name:"制作团队", staff:[
+      {role:"领队/制片人",count:1},{role:"导演",count:1},{role:"助理导演",count:1},
+      {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
+      {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:6}
+    ]}],
+    tech_teams: []
+  },
+  "台克球": {
+    days: { PP:2, T:1, DR:1, LIVE:8, REST:0, TRAVEL:2 },
+    production_teams: [{ name:"制作团队", staff:[
+      {role:"领队/制片人",count:1},{role:"导演",count:1},{role:"助理导演",count:1},
+      {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
+      {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:6}
+    ]}],
+    tech_teams: []
+  },
+  "足球-沙滩足球": {
+    days: { PP:1, T:1, DR:1, LIVE:10, REST:0, TRAVEL:2 },
+    production_teams: [{ name:"制作团队", staff:[
+      {role:"领队/制片人",count:1},{role:"导演",count:1},{role:"助理导演",count:1},
+      {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
+      {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:7}
+    ]}],
+    tech_teams: []
+  },
+  "卡巴迪-沙滩卡巴迪": {
+    days: { PP:1, T:0, DR:1, LIVE:5, REST:0, TRAVEL:2 },
+    production_teams: [{ name:"制作团队", staff:[
+      {role:"领队/制片人",count:1},{role:"导演",count:1},{role:"EVS 导演",count:1},
+      {role:"EVS 操作员",count:1},{role:"字幕协调员",count:1},{role:"场地导演",count:1},
+      {role:"摄像",count:3},{role:"备用摄像",count:1}
+    ]}],
+    tech_teams: []
+  },
+  "游泳-水球": {
+    days: { PP:1, T:0, DR:1, LIVE:16, REST:0, TRAVEL:2 },
+    production_teams: [{ name:"制作团队", staff:[
+      {role:"领队/制片人",count:1},{role:"导演",count:1},{role:"EVS 导演",count:1},
+      {role:"EVS 操作员",count:1},{role:"字幕协调员",count:1},{role:"场地导演",count:1},
+      {role:"摄像",count:4}
+    ]}],
+    tech_teams: []
+  }
+};
+
+// Day type config
+const DAY_TYPES = {
+  PP:     { label:"PP 停车接电",  color:"var(--pp)",     mult:1.0 },
+  T:      { label:"T 技术搭建",   color:"var(--t)",      mult:1.0 },
+  DR:     { label:"DR 带机彩排",  color:"var(--dr)",     mult:1.0 },
+  LIVE:   { label:"LIVE 直播",    color:"var(--live)",   mult:1.5 },
+  REST:   { label:"REST 休息日",  color:"var(--rest)",   mult:0.5 },
+  TRAVEL: { label:"交通日",       color:"var(--travel)", mult:0.5 }
+};
+
+// Default base daily rates (¥/day) - PRODUCTION roles
+const DEFAULT_PROD_RATES = {
+  "领队/制片人":   1500,
+  "导演":          1200,
+  "导演（ISB）":   1200,
+  "助理导演":      800,
+  "助理导演(ISB)": 800,
+  "切换":          1000,
+  "EVS 导演":      1000,
+  "EVS 导演(ISB)": 1000,
+  "EVS 操作员":    800,
+  "字幕协调员":    600,
+  "场地导演":      800,
+  "摄像":          900,
+  "摄像(ISB)":     900,
+  "备用摄像":      900,
+  "无人机飞手":    1200,
+};
+
+// Default base daily rates - TECH roles
+const DEFAULT_TECH_RATES = {
+  "转播系统值班长":    1500,
+  "VIC调色工程师":     1200,
+  "视频/调光工程师":   1000,
+  "音频工程师":        1000,
+  "调音师":            900,
+  "特种设备工程师":    1200,
+  "转播辅助人员":      600,
+  "司机/线工":         500,
+};
+
+// State
+let dayMultipliers = {};
+let prodRates = {};
+let techRates = {};
+let projectDays = {};    // {projName: {PP:n, T:n, ...}}
+let projectCounts = {};  // {projName: {teamIdx: {roleIdx: count}}}
+
+// Init state from defaults
+function initState() {
+  Object.keys(DAY_TYPES).forEach(k => {
+    dayMultipliers[k] = DAY_TYPES[k].mult;
+  });
+  prodRates = {...DEFAULT_PROD_RATES};
+  techRates = {...DEFAULT_TECH_RATES};
+  
+  Object.keys(PROJECTS_DATA).forEach(pname => {
+    projectDays[pname] = {...PROJECTS_DATA[pname].days};
+    projectCounts[pname] = {};
+    // production
+    PROJECTS_DATA[pname].production_teams.forEach((team, ti) => {
+      projectCounts[pname]['prod_'+ti] = {};
+      team.staff.forEach((s, si) => {
+        projectCounts[pname]['prod_'+ti][si] = s.count;
+      });
+    });
+    // tech
+    PROJECTS_DATA[pname].tech_teams.forEach((team, ti) => {
+      projectCounts[pname]['tech_'+ti] = {};
+      team.staff.forEach((s, si) => {
+        projectCounts[pname]['tech_'+ti][si] = s.count;
+      });
+    });
+  });
+}
+
+// =============================================
+// COST CALCULATION
+// =============================================
+function getRate(role, isProduction) {
+  const pool = isProduction ? prodRates : techRates;
+  return pool[role] || 800;
+}
+
+function getDayMultiplier(dtype) {
+  return dayMultipliers[dtype] || 1;
+}
+
+function calcProjectCost(pname) {
+  const proj = PROJECTS_DATA[pname];
+  const days = projectDays[pname];
+  let prodCost = 0, techCost = 0;
+
+  proj.production_teams.forEach((team, ti) => {
+    team.staff.forEach((s, si) => {
+      const count = projectCounts[pname]['prod_'+ti][si];
+      const baseRate = getRate(s.role, true);
+      Object.keys(days).forEach(dtype => {
+        const d = days[dtype] || 0;
+        const mult = getDayMultiplier(dtype);
+        prodCost += count * baseRate * mult * d;
+      });
+    });
+  });
+
+  proj.tech_teams.forEach((team, ti) => {
+    team.staff.forEach((s, si) => {
+      const count = projectCounts[pname]['tech_'+ti][si];
+      const baseRate = getRate(s.role, false);
+      Object.keys(days).forEach(dtype => {
+        const d = days[dtype] || 0;
+        const mult = getDayMultiplier(dtype);
+        techCost += count * baseRate * mult * d;
+      });
+    });
+  });
+
+  return { prodCost, techCost, total: prodCost + techCost };
+}
+
+function calcStaffRowCost(pname, isProduction, teamIdx, staffIdx) {
+  const proj = PROJECTS_DATA[pname];
+  const days = projectDays[pname];
+  const prefix = isProduction ? 'prod_' : 'tech_';
+  const teams = isProduction ? proj.production_teams : proj.tech_teams;
+  const s = teams[teamIdx].staff[staffIdx];
+  const count = projectCounts[pname][prefix+teamIdx][staffIdx];
+  const baseRate = getRate(s.role, isProduction);
+  
+  let cost = 0;
+  Object.keys(days).forEach(dtype => {
+    const d = days[dtype] || 0;
+    const mult = getDayMultiplier(dtype);
+    cost += count * baseRate * mult * d;
+  });
+  return cost;
+}
+
+function totalDays(pname) {
+  const d = projectDays[pname];
+  return Object.values(d).reduce((a,b) => a+b, 0);
+}
+
+// =============================================
+// FORMAT
+// =============================================
+function fmt(n) {
+  return '¥' + Math.round(n).toLocaleString('zh-CN');
+}
+
+// =============================================
+// RENDER SIDEBAR
+// =============================================
+function renderSidebar() {
+  // Day multipliers
+  const dmContainer = document.getElementById('day-multipliers');
+  dmContainer.innerHTML = '';
+  Object.keys(DAY_TYPES).forEach(k => {
+    const dt = DAY_TYPES[k];
+    const row = document.createElement('div');
+    row.className = 'day-rate-item';
+    row.innerHTML = `
+      <div class="day-dot" style="background:${dt.color}"></div>
+      <div class="day-label">${dt.label}</div>
+      <div class="rate-input-wrap">
+        <span class="rate-prefix">×</span>
+        <input class="rate-input" type="number" step="0.1" min="0" max="5" value="${dayMultipliers[k]}"
+          onchange="setDayMult('${k}', this.value)">
+      </div>
+    `;
+    dmContainer.appendChild(row);
+  });
+
+  // Production role rates
+  renderRoleRates('prod-role-rates', prodRates, true);
+  renderRoleRates('tech-role-rates', techRates, false);
+}
+
+function renderRoleRates(containerId, rates, isProduction) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  Object.keys(rates).forEach(role => {
+    const row = document.createElement('div');
+    row.className = 'role-rate-item';
+    row.innerHTML = `
+      <div class="role-name" title="${role}">${role}</div>
+      <div class="rate-input-wrap">
+        <span class="rate-prefix">¥</span>
+        <input class="rate-input" type="number" step="50" min="0" value="${rates[role]}"
+          onchange="setRoleRate('${role}', this.value, ${isProduction})">
+      </div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+// =============================================
+// RENDER PROJECTS
+// =============================================
+function renderProjects() {
+  const container = document.getElementById('projects-list');
+  container.innerHTML = '';
+
+  Object.keys(PROJECTS_DATA).forEach(pname => {
+    const proj = PROJECTS_DATA[pname];
+    const costs = calcProjectCost(pname);
+    const days = projectDays[pname];
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.id = 'card-'+pname;
+
+    const pillsHtml = Object.keys(days).map(k => {
+      const v = days[k];
+      if (!v) return '';
+      return `<span class="day-pill pill-${k.toLowerCase()}">${k}×${v}</span>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="project-header" onclick="toggleCard('${pname}')">
+        <div class="project-name">${pname}</div>
+        <div class="day-pills">${pillsHtml}</div>
+        <div class="project-total" id="ptotal-${pname}">${fmt(costs.total)}</div>
+        <div class="chevron">▾</div>
+      </div>
+      <div class="project-body" id="pbody-${pname}">
+        ${renderProjectBody(pname)}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderProjectBody(pname) {
+  const proj = PROJECTS_DATA[pname];
+  const days = projectDays[pname];
+
+  // Days editor
+  const daysHtml = Object.keys(DAY_TYPES).map(k => {
+    const dt = DAY_TYPES[k];
+    return `
+      <div class="day-edit-item">
+        <div class="day-edit-label" style="color:${dt.color}">${k}</div>
+        <input class="day-edit-input" type="number" min="0" max="30" value="${days[k]||0}"
+          onchange="setProjectDays('${pname}', '${k}', this.value)">
+      </div>
+    `;
+  }).join('');
+
+  // Teams
+  let teamsHtml = '';
+
+  const renderTeamTable = (teams, isProduction, prefix) => {
+    return teams.map((team, ti) => {
+      const subtotalKey = isProduction ? 'prodCost' : 'techCost';
+      let subtot = 0;
+      const rows = team.staff.map((s, si) => {
+        const cost = calcStaffRowCost(pname, isProduction, ti, si);
+        subtot += cost;
+        const cnt = projectCounts[pname][prefix+ti][si];
+        const baseRate = getRate(s.role, isProduction);
+        return `
+          <tr>
+            <td>${s.role}</td>
+            <td>
+              <input class="count-input" type="number" min="0" max="50" value="${cnt}"
+                onchange="setStaffCount('${pname}','${prefix}${ti}',${si},this.value)">
+            </td>
+            <td class="cell-rate">${fmt(baseRate)}/天</td>
+            <td class="cell-cost" id="scost-${pname}-${prefix}${ti}-${si}">${fmt(cost)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const teamTypeLabel = isProduction ? '制作团队' : '技术团队';
+      return `
+        <div class="team-block">
+          <div class="team-title">
+            <span>${isProduction ? '🎬' : '🔧'} ${team.name || teamTypeLabel}</span>
+            <span class="team-subtotal" id="tsubtot-${pname}-${prefix}${ti}">${fmt(subtot)}</span>
+          </div>
+          <table class="staff-table">
+            <thead><tr><th>岗位</th><th>人数</th><th>基准日薪</th><th style="text-align:right">小计</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }).join('');
+  };
+
+  teamsHtml += renderTeamTable(proj.production_teams, true, 'prod_');
+  teamsHtml += renderTeamTable(proj.tech_teams, false, 'tech_');
+
+  return `
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;font-family:'Space Mono',monospace;">工作天数（可调整）</div>
+      <div class="days-editor">${daysHtml}</div>
+    </div>
+    ${teamsHtml}
+  `;
+}
+
+// =============================================
+// RENDER OVERVIEW
+// =============================================
+function renderOverview() {
+  const allCosts = Object.keys(PROJECTS_DATA).map(p => ({ p, ...calcProjectCost(p) }));
+  const grandTotal = allCosts.reduce((a,c) => a+c.total, 0);
+  const totalProd = allCosts.reduce((a,c) => a+c.prodCost, 0);
+  const totalTech = allCosts.reduce((a,c) => a+c.techCost, 0);
+  const totalProjects = allCosts.length;
+
+  // Stats
+  document.getElementById('overview-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">总费用</div><div class="stat-value">${fmt(grandTotal)}</div></div>
+    <div class="stat-card"><div class="stat-label">制作团队费用</div><div class="stat-value" style="color:var(--accent2)">${fmt(totalProd)}</div></div>
+    <div class="stat-card"><div class="stat-label">技术团队费用</div><div class="stat-value" style="color:var(--accent3)">${fmt(totalTech)}</div></div>
+    <div class="stat-card"><div class="stat-label">项目数量</div><div class="stat-value" style="color:var(--accent4)">${totalProjects}</div></div>
+  `;
+
+  // Bar chart
+  const maxCost = Math.max(...allCosts.map(c => c.total));
+  const barHtml = allCosts.sort((a,b)=>b.total-a.total).map(c => `
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="font-size:11px;color:var(--text2);width:160px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.p}">${c.p}</div>
+      <div style="flex:1;background:var(--surface2);border-radius:4px;overflow:hidden;height:24px;position:relative;">
+        <div style="height:100%;width:${(c.total/maxCost*100).toFixed(1)}%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:4px;transition:width 0.5s;"></div>
+      </div>
+      <div style="font-size:12px;font-family:'Space Mono',monospace;color:var(--accent);width:110px;flex-shrink:0;">${fmt(c.total)}</div>
+    </div>
+  `).join('');
+  document.getElementById('project-bar-chart').innerHTML = barHtml;
+
+  // Team comparison
+  const tcHtml = allCosts.map(c => {
+    const w = c.total > 0 ? (c.prodCost/c.total*100).toFixed(0) : 0;
+    return `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <div style="font-size:11px;color:var(--text2);width:160px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.p}">${c.p}</div>
+        <div style="flex:1;height:18px;background:var(--surface2);border-radius:4px;overflow:hidden;display:flex;">
+          <div style="width:${w}%;background:var(--accent2);height:100%;transition:width 0.5s;" title="制作 ${fmt(c.prodCost)}"></div>
+          <div style="flex:1;background:var(--accent3);height:100%;opacity:0.6;" title="技术 ${fmt(c.techCost)}"></div>
+        </div>
+        <div style="font-size:10px;font-family:'Space Mono',monospace;color:var(--text3);width:110px;flex-shrink:0;">
+          <span style="color:var(--accent2)">${w}%</span> 制作
+        </div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('team-comparison').innerHTML = `
+    <div style="display:flex;gap:16px;margin-bottom:10px;font-size:11px;">
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--accent2);border-radius:2px;margin-right:4px;"></span>制作团队</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--accent3);border-radius:2px;margin-right:4px;opacity:0.6;"></span>技术团队</span>
+    </div>
+    ${tcHtml}
+  `;
+}
+
+// =============================================
+// RENDER SUMMARY
+// =============================================
+function renderSummary() {
+  const tbody = document.getElementById('summary-tbody');
+  let rows = '';
+  let grandProd = 0, grandTech = 0, grandTotal = 0;
+
+  Object.keys(PROJECTS_DATA).forEach(pname => {
+    const c = calcProjectCost(pname);
+    const td = totalDays(pname);
+    grandProd += c.prodCost;
+    grandTech += c.techCost;
+    grandTotal += c.total;
+    rows += `
+      <tr>
+        <td>${pname}</td>
+        <td class="num">${fmt(c.prodCost)}</td>
+        <td class="num">${fmt(c.techCost)}</td>
+        <td class="num">${td} 天</td>
+        <td class="num" style="color:var(--accent);font-weight:700;">${fmt(c.total)}</td>
+      </tr>
+    `;
+  });
+
+  rows += `
+    <tr class="subtotal">
+      <td>制作团队合计</td>
+      <td class="num">${fmt(grandProd)}</td>
+      <td class="num">—</td>
+      <td class="num">—</td>
+      <td class="num">${fmt(grandProd)}</td>
+    </tr>
+    <tr class="subtotal">
+      <td>技术团队合计</td>
+      <td class="num">—</td>
+      <td class="num">${fmt(grandTech)}</td>
+      <td class="num">—</td>
+      <td class="num">${fmt(grandTech)}</td>
+    </tr>
+    <tr class="grand-total">
+      <td>⚡ 总计</td>
+      <td class="num">${fmt(grandProd)}</td>
+      <td class="num">${fmt(grandTech)}</td>
+      <td class="num">—</td>
+      <td class="num">${fmt(grandTotal)}</td>
+    </tr>
+  `;
+
+  tbody.innerHTML = rows;
+}
+
+// =============================================
+// UPDATE ALL
+// =============================================
+function updateAll() {
+  // Update grand total in header
+  const grand = Object.keys(PROJECTS_DATA).reduce((a, p) => a + calcProjectCost(p).total, 0);
+  document.getElementById('grand-total').textContent = fmt(grand);
+
+  // Update project cards
+  Object.keys(PROJECTS_DATA).forEach(pname => {
+    const el = document.getElementById('ptotal-'+pname);
+    if (el) el.textContent = fmt(calcProjectCost(pname).total);
+
+    const body = document.getElementById('pbody-'+pname);
+    if (body && document.getElementById('card-'+pname).classList.contains('open')) {
+      body.innerHTML = renderProjectBody(pname);
+    }
+  });
+
+  renderOverview();
+  renderSummary();
+}
+
+// =============================================
+// SETTERS
+// =============================================
+function setDayMult(key, val) {
+  dayMultipliers[key] = parseFloat(val) || 0;
+  updateAll();
+}
+
+function setRoleRate(role, val, isProduction) {
+  if (isProduction) prodRates[role] = parseFloat(val) || 0;
+  else techRates[role] = parseFloat(val) || 0;
+  updateAll();
+}
+
+function setProjectDays(pname, dtype, val) {
+  projectDays[pname][dtype] = parseInt(val) || 0;
+  // Update pills in header
+  const card = document.getElementById('card-'+pname);
+  if (card) {
+    const days = projectDays[pname];
+    const pillsHtml = Object.keys(days).map(k => {
+      const v = days[k];
+      if (!v) return '';
+      return `<span class="day-pill pill-${k.toLowerCase()}">${k}×${v}</span>`;
+    }).join('');
+    card.querySelector('.day-pills').innerHTML = pillsHtml;
+  }
+  updateAll();
+}
+
+function setStaffCount(pname, teamKey, si, val) {
+  projectCounts[pname][teamKey][si] = parseInt(val) || 0;
+  updateAll();
+}
+
+function toggleCard(pname) {
+  const card = document.getElementById('card-'+pname);
+  const isOpen = card.classList.contains('open');
+  if (!isOpen) {
+    card.classList.add('open');
+    document.getElementById('pbody-'+pname).innerHTML = renderProjectBody(pname);
+  } else {
+    card.classList.remove('open');
+  }
+}
+
+function resetAllRates() {
+  prodRates = {...DEFAULT_PROD_RATES};
+  techRates = {...DEFAULT_TECH_RATES};
+  Object.keys(DAY_TYPES).forEach(k => dayMultipliers[k] = DAY_TYPES[k].mult);
+  renderSidebar();
+  updateAll();
+}
+
+// =============================================
+// TABS
+// =============================================
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// =============================================
+// EXPORT CSV
+// =============================================
+function exportCSV() {
+  let csv = '项目,制作团队费用,技术团队费用,总工作天数,项目总费用\n';
+  let gp=0, gt=0, gtotal=0;
+  Object.keys(PROJECTS_DATA).forEach(pname => {
+    const c = calcProjectCost(pname);
+    const td = totalDays(pname);
+    gp+=c.prodCost; gt+=c.techCost; gtotal+=c.total;
+    csv += `${pname},${Math.round(c.prodCost)},${Math.round(c.techCost)},${td},${Math.round(c.total)}\n`;
+  });
+  csv += `合计,${Math.round(gp)},${Math.round(gt)},,${Math.round(gtotal)}\n`;
+
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='亚沙会成本汇总.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// =============================================
+// INIT
+// =============================================
+initState();
+renderSidebar();
+renderProjects();
+renderOverview();
+renderSummary();
+</script>
+</body>
+</html>
