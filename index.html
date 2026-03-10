@@ -861,6 +861,18 @@
 // =============================================
 // DATA
 // =============================================
+// 标准技术团队（每个项目通用，默认人数1）
+const STD_TECH = () => ([{ name:"技术团队", staff:[
+  {role:"转播系统值班长",   count:1},
+  {role:"VIC调色工程师",    count:1},
+  {role:"视频/调光工程师",  count:1},
+  {role:"音频工程师",       count:1},
+  {role:"调音师",           count:1},
+  {role:"特种设备工程师",   count:1},
+  {role:"转播辅助人员",     count:1},
+  {role:"司机/线工",        count:1}
+]}]);
+
 const PROJECTS_DATA = {
   "篮球-三人篮球": {
     days: { PP:1, T:1, DR:1, LIVE:10, REST:0, TRAVEL:2 },
@@ -869,7 +881,7 @@ const PROJECTS_DATA = {
       {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
       {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:7}
     ]}],
-    tech_teams: []
+    tech_teams: STD_TECH()
   },
   "沙滩田径": {
     days: { PP:1, T:2, DR:1, LIVE:6, REST:0, TRAVEL:2 },
@@ -878,7 +890,7 @@ const PROJECTS_DATA = {
       {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
       {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:6}
     ]}],
-    tech_teams: []
+    tech_teams: STD_TECH()
   },
   "龙舟": {
     days: { PP:1, T:1, DR:1, LIVE:6, REST:0, TRAVEL:2 },
@@ -887,7 +899,7 @@ const PROJECTS_DATA = {
       {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
       {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:9},{role:"无人机飞手",count:1}
     ]}],
-    tech_teams: []
+    tech_teams: STD_TECH()
   },
   "排球-沙滩排球": {
     days: { PP:1, T:1, DR:1, LIVE:14, REST:0, TRAVEL:2 },
@@ -896,7 +908,7 @@ const PROJECTS_DATA = {
       {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
       {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:7},{role:"摄像(ISB)",count:1}
     ]}],
-    tech_teams: []
+    tech_teams: STD_TECH()
   },
   "沙滩手球": {
     days: { PP:1, T:1, DR:1, LIVE:14, REST:0, TRAVEL:2 },
@@ -905,7 +917,7 @@ const PROJECTS_DATA = {
       {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
       {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:7}
     ]}],
-    tech_teams: []
+    tech_teams: STD_TECH()
   },
   "铁人三项-游跑两项": {
     days: { PP:2, T:1, DR:1, LIVE:4, REST:0, TRAVEL:2 },
@@ -914,7 +926,7 @@ const PROJECTS_DATA = {
       {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
       {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:10},{role:"无人机飞手",count:1}
     ]}],
-    tech_teams: []
+    tech_teams: STD_TECH()
   },
   "攀岩-速度": {
     days: { PP:1, T:1, DR:1, LIVE:4, REST:0, TRAVEL:2 },
@@ -924,9 +936,10 @@ const PROJECTS_DATA = {
       {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:7}
     ]}],
     tech_teams: [{ name:"技术团队", staff:[
-      {role:"转播系统值班长",count:1},{role:"VIC调色工程师",count:1},{role:"视频/调光工程师",count:1},
-      {role:"音频工程师",count:2},{role:"调音师",count:1},{role:"特种设备工程师",count:1},
-      {role:"转播辅助人员",count:2},{role:"司机/线工",count:2}
+      {role:"转播系统值班长",  count:1},{role:"VIC调色工程师",   count:1},
+      {role:"视频/调光工程师", count:1},{role:"音频工程师",      count:2},
+      {role:"调音师",          count:1},{role:"特种设备工程师",  count:1},
+      {role:"转播辅助人员",    count:2},{role:"司机/线工",       count:2}
     ]}]
   },
   "柔术&摔跤-沙滩摔跤": {
@@ -936,7 +949,7 @@ const PROJECTS_DATA = {
       {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
       {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:6}
     ]}],
-    tech_teams: []
+    tech_teams: STD_TECH()
   },
   "台克球": {
     days: { PP:2, T:1, DR:1, LIVE:8, REST:0, TRAVEL:2 },
@@ -945,7 +958,7 @@ const PROJECTS_DATA = {
       {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
       {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:6}
     ]}],
-    tech_teams: []
+    tech_teams: STD_TECH()
   },
   "足球-沙滩足球": {
     days: { PP:1, T:1, DR:1, LIVE:10, REST:0, TRAVEL:2 },
@@ -954,7 +967,7 @@ const PROJECTS_DATA = {
       {role:"切换",count:1},{role:"EVS 导演",count:1},{role:"EVS 操作员",count:1},
       {role:"字幕协调员",count:1},{role:"场地导演",count:1},{role:"摄像",count:7}
     ]}],
-    tech_teams: []
+    tech_teams: STD_TECH()
   },
   "卡巴迪-沙滩卡巴迪": {
     days: { PP:1, T:0, DR:1, LIVE:5, REST:0, TRAVEL:2 },
@@ -963,7 +976,7 @@ const PROJECTS_DATA = {
       {role:"EVS 操作员",count:1},{role:"字幕协调员",count:1},{role:"场地导演",count:1},
       {role:"摄像",count:3},{role:"备用摄像",count:1}
     ]}],
-    tech_teams: []
+    tech_teams: STD_TECH()
   },
   "游泳-水球": {
     days: { PP:1, T:0, DR:1, LIVE:16, REST:0, TRAVEL:2 },
@@ -972,7 +985,7 @@ const PROJECTS_DATA = {
       {role:"EVS 操作员",count:1},{role:"字幕协调员",count:1},{role:"场地导演",count:1},
       {role:"摄像",count:4}
     ]}],
-    tech_teams: []
+    tech_teams: STD_TECH()
   }
 };
 
@@ -1546,7 +1559,10 @@ async function saveToCloud() {
       .from('calculator_state')
       .upsert({ id: STATE_ID, data: state, updated_at: new Date().toISOString() })
       .select();
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error detail:', JSON.stringify(error));
+      throw new Error(error.message || error.hint || error.code || JSON.stringify(error));
+    }
     setSyncStatus('saved', '已同步 ✓');
     setLastSaved();
   } catch (e) {
