@@ -1622,7 +1622,14 @@ function applyStateSnapshot(state) {
   }
   if (state.projectCounts) {
     Object.keys(state.projectCounts).forEach(p => {
-      if (projectCounts[p]) Object.assign(projectCounts[p], state.projectCounts[p]);
+      if (!projectCounts[p]) return;
+      // 只合并云端有、且当前代码也有的 key（避免旧数据覆盖新增的技术团队）
+      Object.keys(state.projectCounts[p]).forEach(teamKey => {
+        if (projectCounts[p][teamKey] !== undefined) {
+          Object.assign(projectCounts[p][teamKey], state.projectCounts[p][teamKey]);
+        }
+        // 云端有但代码没有的 key（旧结构残留）直接忽略
+      });
     });
   }
 }
