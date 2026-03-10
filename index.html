@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>第六届亚沙会转播成本计算器</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #0a0e1a;
@@ -588,6 +589,62 @@
     border-left: 2px solid var(--accent);
   }
 
+  /* SYNC STATUS */
+  .sync-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .sync-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+
+  .sync-dot.idle    { background: var(--text3); }
+  .sync-dot.saving  { background: var(--accent); animation: pulse 0.8s infinite; }
+  .sync-dot.saved   { background: var(--accent3); }
+  .sync-dot.error   { background: #ef4444; }
+  .sync-dot.loading { background: var(--accent2); animation: pulse 0.8s infinite; }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.3; }
+  }
+
+  .sync-text { color: var(--text3); }
+
+  .loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(10,14,26,0.92);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 9999;
+    gap: 16px;
+  }
+
+  .loading-overlay.hidden { display: none; }
+
+  .loading-spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--surface3);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-size: 13px;
+    color: var(--text2);
+    font-family: 'Space Mono', monospace;
+  }
+
   /* SCROLLBAR */
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -685,11 +742,23 @@
     <span class="logo-sub">第六届亚沙会 · 2026</span>
     <span class="logo-main">转播成本计算器</span>
   </div>
-  <div class="total-badge">
-    <div class="total-label">总成本</div>
-    <div class="total-value" id="grand-total">¥0</div>
+  <div style="display:flex;align-items:center;gap:24px;">
+    <div class="sync-bar">
+      <div class="sync-dot loading" id="sync-dot"></div>
+      <span class="sync-text" id="sync-text">连接中...</span>
+    </div>
+    <div class="total-badge">
+      <div class="total-label">总成本</div>
+      <div class="total-value" id="grand-total">¥0</div>
+    </div>
   </div>
 </header>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">正在从云端加载数据...</div>
+</div>
 
 <div class="container">
 
@@ -724,7 +793,10 @@
 
     <div class="sidebar-section" style="padding-bottom:24px;">
       <div class="section-title">操作</div>
-      <button class="reset-btn" onclick="resetAllRates()">↺ 恢复默认值</button>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="reset-btn" onclick="resetAllRates()">↺ 恢复默认值</button>
+        <div style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:4px;" id="last-saved-text"></div>
+      </div>
     </div>
 
   </aside>
@@ -1341,12 +1413,14 @@ function updateAll() {
 function setDayMult(key, val) {
   dayMultipliers[key] = parseFloat(val) || 0;
   updateAll();
+  scheduleSave();
 }
 
 function setRoleRate(role, val, isProduction) {
   if (isProduction) prodRates[role] = parseFloat(val) || 0;
   else techRates[role] = parseFloat(val) || 0;
   updateAll();
+  scheduleSave();
 }
 
 function setProjectDays(pname, dtype, val) {
@@ -1363,11 +1437,13 @@ function setProjectDays(pname, dtype, val) {
     card.querySelector('.day-pills').innerHTML = pillsHtml;
   }
   updateAll();
+  scheduleSave();
 }
 
 function setStaffCount(pname, teamKey, si, val) {
   projectCounts[pname][teamKey][si] = parseInt(val) || 0;
   updateAll();
+  scheduleSave();
 }
 
 function toggleCard(pname) {
@@ -1387,6 +1463,7 @@ function resetAllRates() {
   Object.keys(DAY_TYPES).forEach(k => dayMultipliers[k] = DAY_TYPES[k].mult);
   renderSidebar();
   updateAll();
+  scheduleSave();
 }
 
 // =============================================
@@ -1421,13 +1498,131 @@ function exportCSV() {
 }
 
 // =============================================
+// SUPABASE SETUP
+// =============================================
+const SUPABASE_URL = 'https://falivdzxtctcwittlpcn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_3D1XJPUCvBLXOF850YjaJA_7bTHPm6L';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const STATE_ID = 'main';
+
+let saveTimer = null;
+let isSaving = false;
+
+function setSyncStatus(status, text) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  dot.className = 'sync-dot ' + status;
+  txt.textContent = text;
+}
+
+function setLastSaved() {
+  const el = document.getElementById('last-saved-text');
+  if (el) {
+    const now = new Date();
+    el.textContent = '上次保存: ' + now.toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }
+}
+
+// Debounced auto-save: waits 1.5s after last change
+function scheduleSave() {
+  setSyncStatus('saving', '待保存...');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToCloud, 1500);
+}
+
+async function saveToCloud() {
+  if (isSaving) return;
+  isSaving = true;
+  setSyncStatus('saving', '保存中...');
+  try {
+    const state = buildStateSnapshot();
+    const { error } = await sb
+      .from('calculator_state')
+      .upsert({ id: STATE_ID, data: state, updated_at: new Date().toISOString() });
+    if (error) throw error;
+    setSyncStatus('saved', '已同步');
+    setLastSaved();
+  } catch (e) {
+    console.error('Save failed:', e);
+    setSyncStatus('error', '保存失败');
+  } finally {
+    isSaving = false;
+  }
+}
+
+async function loadFromCloud() {
+  setSyncStatus('loading', '加载中...');
+  try {
+    const { data, error } = await sb
+      .from('calculator_state')
+      .select('data, updated_at')
+      .eq('id', STATE_ID)
+      .single();
+
+    if (error || !data || !data.data || Object.keys(data.data).length === 0) {
+      // No cloud data, use defaults
+      setSyncStatus('saved', '默认数据');
+      return false;
+    }
+
+    applyStateSnapshot(data.data);
+    const savedAt = new Date(data.updated_at);
+    setSyncStatus('saved', '已加载');
+    const el = document.getElementById('last-saved-text');
+    if (el) el.textContent = '云端数据: ' + savedAt.toLocaleString('zh-CN', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    return true;
+  } catch (e) {
+    console.error('Load failed:', e);
+    setSyncStatus('error', '加载失败，使用默认值');
+    return false;
+  }
+}
+
+function buildStateSnapshot() {
+  return {
+    dayMultipliers: {...dayMultipliers},
+    prodRates: {...prodRates},
+    techRates: {...techRates},
+    projectDays: JSON.parse(JSON.stringify(projectDays)),
+    projectCounts: JSON.parse(JSON.stringify(projectCounts)),
+  };
+}
+
+function applyStateSnapshot(state) {
+  if (state.dayMultipliers) Object.assign(dayMultipliers, state.dayMultipliers);
+  if (state.prodRates) Object.assign(prodRates, state.prodRates);
+  if (state.techRates) Object.assign(techRates, state.techRates);
+  if (state.projectDays) {
+    Object.keys(state.projectDays).forEach(p => {
+      if (projectDays[p]) Object.assign(projectDays[p], state.projectDays[p]);
+    });
+  }
+  if (state.projectCounts) {
+    Object.keys(state.projectCounts).forEach(p => {
+      if (projectCounts[p]) Object.assign(projectCounts[p], state.projectCounts[p]);
+    });
+  }
+}
+
+// =============================================
 // INIT
 // =============================================
 initState();
-renderSidebar();
-renderProjects();
-renderOverview();
-renderSummary();
+
+async function boot() {
+  const loaded = await loadFromCloud();
+  document.getElementById('loading-overlay').classList.add('hidden');
+  renderSidebar();
+  renderProjects();
+  renderOverview();
+  renderSummary();
+  if (!loaded) {
+    // First time: save defaults to cloud
+    await saveToCloud();
+  }
+}
+
+boot();
 </script>
 </body>
 </html>
